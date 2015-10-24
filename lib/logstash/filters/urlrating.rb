@@ -3,27 +3,16 @@ require "logstash/filters/base"
 require "logstash/namespace"
 require 'net/http'
 require 'uri'
+require 'cgi'
 require 'json'
 
-# This example filter will replace the contents of the default 
-# message field with whatever you specify in the configuration.
-#
-# It is only intended to be used as an example.
 class LogStash::Filters::URLRating < LogStash::Filters::Base
 
-  # Setting the config_name here is required. This is how you
-  # configure this filter from your Logstash config.
-  #
-  # filter {
-  #   example {
-  #     message => "My message..."
-  #   }
-  # }
-  #
   config_name "urlrating"
   
-  # Replace the message with this value.
-  # config :message, :validate => :string, :default => "Hello World!"
+  config :message, :validate => :string, :default => ""
+  config :target, :validate => :string, :default => "rating"
+  config :server, :validate => :string, :default => "http://localhost:4126/v1/web/uri/rate.json?uri="
 
   public
   def register
@@ -33,15 +22,21 @@ class LogStash::Filters::URLRating < LogStash::Filters::Base
   public
   def filter(event)
 
-#    if @message
-      # Replace the event message with our message as configured in the
-      # config file.
-#      event["message"] = @message
-#    end
-
-    event["url"] = event["http_protocol"] + "://" + event["dst_host"] + event["request_url"]
+    if @message
+      urls = URI.extract(event["message"])
+      if !urls.empty? then
+        begin
+          url_escaped = CGI.escape(urls[0])
+          json = Net::HTTP.get(URI.parse(server + url_escaped))
+          result = JSON.parse(json)
+          event[target] = result["rating"]["wrs"]["score"]
+        rescue => e
+          puts e
+        end
+      end
+    end
 
     # filter_matched should go in the last line of our successful code
     filter_matched(event)
   end # def filter
-end # class LogStash::Filters::Example
+end # class LogStash::Filters::URLRating

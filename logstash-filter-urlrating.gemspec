@@ -1,12 +1,12 @@
 Gem::Specification.new do |s|
   s.name = 'logstash-filter-urlrating'
-  s.version         = '0.1.1'
+  s.version         = '0.1.2'
   s.licenses = ['Apache License (2.0)']
-  s.summary = "This example filter replaces the contents of the message field with the specified value."
+  s.summary = "This URL rating filter adds a score of the URL in the message by looking up Trend Micro's URL rating engine."
   s.description = "This gem is a logstash plugin required to be installed on top of the Logstash core pipeline using $LS_HOME/bin/plugin install gemname. This gem is not a stand-alone program"
-  s.authors = ["Kosho"]
+  s.authors = ["Kosho Owa"]
   s.email = 'kosho.owa@gmail.com'
-  s.homepage = "http://www.elastic.co/guide/en/logstash/current/index.html"
+  s.homepage = ""
   s.require_paths = ["lib"]
 
   # Files

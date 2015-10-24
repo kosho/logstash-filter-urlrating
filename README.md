@@ -1,86 +1,49 @@
-# Logstash Plugin
+# Logstash URL Rating Plugin
 
 This is a plugin for [Logstash](https://github.com/elastic/logstash).
 
 It is fully free and fully open source. The license is Apache 2.0, meaning you are pretty much free to use it however you want in whatever way.
 
-## Documentation
+## Requirements
 
-Logstash provides infrastructure to automatically generate documentation for this plugin. We use the asciidoc format to write documentation so any comments in the source code will be first converted into asciidoc and then into html. All plugin documentation are placed under one [central location](http://www.elastic.co/guide/en/logstash/current/).
+This plugin needs Trend Micro's URL rating engine.
 
-- For formatting code or config example, you can use the asciidoc `[source,ruby]` directive
-- For more asciidoc formatting tips, see the excellent reference here https://github.com/elastic/docs#asciidoc-guide
+## Building and Installation
 
-## Need Help?
-
-Need help? Try #logstash on freenode IRC or the https://discuss.elastic.co/c/logstash discussion forum.
-
-## Developing
-
-### 1. Plugin Developement and Testing
-
-#### Code
-- To get started, you'll need JRuby with the Bundler gem installed.
-
-- Create a new plugin or clone and existing from the GitHub [logstash-plugins](https://github.com/logstash-plugins) organization. We also provide [example plugins](https://github.com/logstash-plugins?query=example).
-
-- Install dependencies
-```sh
-bundle install
-```
-
-#### Test
-
-- Update your dependencies
+First go to the root of the repository and run `gem build` command.
 
 ```sh
-bundle install
+cd logstash-filter-urlrating
+gem build ./logstash-filter-urlrating.gemspec
 ```
 
-- Run tests
+Run `plugin install` command to install the generated gem file to the appropriate location.
 
 ```sh
-bundle exec rspec
+/opt/logstash/bin/plugin install logstash-filter-urlrating-0.1.2.gem
 ```
 
-### 2. Running your unpublished Plugin in Logstash
+## Logstash Configuration
 
-#### 2.1 Run in a local Logstash clone
+This filter plugin takes the `target` and the `server` variables in the configuration file.
 
-- Edit Logstash `Gemfile` and add the local plugin path, for example:
 ```ruby
-gem "logstash-filter-awesome", :path => "/your/local/logstash-filter-awesome"
+filter {
+  urlrating {
+    target => "rating"
+    server => "http://local:4126/v1/web/uri/rate.json?uri="
+  }
+}
 ```
-- Install plugin
+
+The default values of those are described above. You may specified the URL to the URL rating service whenever installed on a different server.
+
+## Testing
+
+You can pass any log which contains a URL-like string to the filter via the standard input.
+
 ```sh
-bin/plugin install --no-verify
+cat /var/log/squid/access.log | /opt/logstash/bin/logstash -e 'input { stdin{} } filter { urlrating {} } output {stdout { codec => rubydebug }}'
 ```
-- Run Logstash with your plugin
-```sh
-bin/logstash -e 'filter {awesome {}}'
-```
-At this point any modifications to the plugin code will be applied to this local Logstash setup. After modifying the plugin, simply rerun Logstash.
 
-#### 2.2 Run in an installed Logstash
-
-You can use the same **2.1** method to run your plugin in an installed Logstash by editing its `Gemfile` and pointing the `:path` to your local plugin development directory or you can build the gem and install it using:
-
-- Build your plugin gem
-```sh
-gem build logstash-filter-awesome.gemspec
-```
-- Install the plugin from the Logstash home
-```sh
-bin/plugin install /your/local/plugin/logstash-filter-awesome.gem
-```
-- Start Logstash and proceed to test the plugin
-
-## Contributing
-
-All contributions are welcome: ideas, patches, documentation, bug reports, complaints, and even something you drew up on a napkin.
-
-Programming is not a required skill. Whatever you've seen about open source and maintainers or community members  saying "send patches or die" - you will not see that here.
-
-It is more important to the community that you are able to contribute.
-
-For more information about contributing, see the [CONTRIBUTING](https://github.com/elastic/logstash/blob/master/CONTRIBUTING.md) file.
+You will find the field like `"rating": 81` from the output.
