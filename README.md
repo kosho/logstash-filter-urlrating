@@ -31,7 +31,7 @@ This filter plugin takes the `target` and the `server` variables in the configur
 filter {
   urlrating {
     target => "rating"
-    server => "http://local:4126/v1/web/uri/rate.json?uri="
+    server => "http://localhost:4126/v1/web/uri/rate.json?uri="
   }
 }
 ```
